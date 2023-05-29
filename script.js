@@ -45,44 +45,55 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	const calculate = () => {
-		const inputText = getDisplayText();
+		let inputText = getDisplayText();
 
-		const inputRegex = /^\-?[\w]+(?:\.[\w]+)?([\+\-\*\/\%][\w]+(?:\.[\w]+)?)*$/;
-		const isValidInput = inputRegex.test(inputText) || inputRegex.test(inputText + '+');
+		const inputRegex = /^(\-?\d+(\.\d+)?(([\+\-\*\/\%]-?\d+(\.\d+)?)*)*)$/;
+		const isValidInput = inputRegex.test(inputText);
+		/*
+				if (!isValidInput) {
+					console.log(`'${inputText}' does not match the pattern`);
+					displayText.innerHTML = markInvalidCharacters(inputText);
+					return;
+				}*/
 
-		if (!isValidInput) {
-			console.log(`'${inputText}' does not match the pattern`);
-			displayText.innerHTML = markInvalidCharacters(inputText);
-			return;
+		try {
+			// Handling special cases: "--" becomes "+", "-+" becomes "-"
+			inputText = inputText.replace(/\-\-/g, '+');
+			inputText = inputText.replace(/\-\+/g, '-');
+
+			const result = new Function('return ' + inputText)();
+			setHistoryText(inputText);
+			setDisplayText(result.toString());
+		} catch (e) {
+			console.log('Error in calculation: ' + e);
+			displayText.innerHTML = '<span class="error">' + inputText + '</span>';
 		}
-
-		const result = eval(inputText);
-
-		setHistoryText(inputText);
-		setDisplayText(result.toString());
 	}
 
 	function markInvalidCharacters(text) {
-		const inputRegex = /^\-?[\w]+(?:\.[\w]+)?([\+\-\*\/\%][\w]+(?:\.[\w]+)?)*$/;
+		// Splitting the input into segments that always include a number and an operator
+		const segments = text.split(/(?=[\+\-\*\/\%])/);
+		const segmentRegex = /^[\-\+]?[\w]+(?:\.[\w]+)?$/;  // Validating individual number with optional preceding '-' or '+'
+		const operatorRegex = /^[\+\-\*\/\%]$/;  // Validating operators
 
 		let markedText = '';
-		let foundError = false;
+		let prevSegment = '';
 
-		for (let i = 0; i < text.length; i++) {
-			const char = text[i];
-			const isInvalid = !inputRegex.test(char);
-
-			if (isInvalid && !foundError) {
-				markedText += `<span class="error">${char}</span>`;
-				foundError = true;
-			} else {
-				markedText += char;
+		segments.forEach((segment, i) => {
+			// If the segment is valid, add it to the marked text as is
+			if ((operatorRegex.test(segment) && segmentRegex.test(prevSegment)) ||
+				(segmentRegex.test(segment) && (operatorRegex.test(prevSegment) || prevSegment === ''))) {
+				markedText += segment;
 			}
-		}
+			// If the segment is invalid, mark the whole segment as an error
+			else {
+				markedText += `<span class="error">${segment}</span>`;
+			}
+			prevSegment = segment;
+		});
 
 		return markedText;
 	}
-
 
 
 
@@ -157,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	const setDisplayText = text => {
-		displayText.innerHTML = text;
+		displayText.innerHTML = text.replace(/<span class="error">(.*?)<\/span>/g, '$1');
 	}
 
 	const setHistoryText = text => {
