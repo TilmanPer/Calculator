@@ -1,60 +1,158 @@
-let display = document.getElementById('display');
-let lastInput = document.getElementById('last-input');
-let buttons = Array.from(document.getElementsByClassName('num'));
-let operators = Array.from(document.getElementsByClassName('op'));
-let clearButton = document.querySelector('.clear');
-let clearEntryButton = document.querySelector('.clear-entry');
-let equalButton = document.querySelector('.equal');
-let lastExpression = null;
-let repeatedEqual = false;
+document.addEventListener("DOMContentLoaded", () => {
+	const displayText = document.getElementById('input-text');
+	const historyText = document.getElementById('history-text');
+	const buttons = document.querySelectorAll('.button');
 
-buttons.map(button => {
-    button.addEventListener('click', () => {
-        if (display.innerText === '0' || repeatedEqual) {
-            display.innerText = '';
-            repeatedEqual = false;
-        }
-        display.innerText += button.innerText;
-    });
+	/*Button click sound*/
+	const clickSound = new Audio("click.m4a");
+
+	function playSound(audio, volume) {
+		audio = audio.cloneNode();
+		audio.volume = volume;
+		audio.play();
+	}
+
+	const handleInput = input => {
+		if (getDisplayText() === '0') {
+			setDisplayText('');
+		}
+		addDisplayText(input);
+		playSound(clickSound, 0.1);
+	}
+
+	function setActiveButton(key) {
+		buttons.forEach(button => {
+			if (key === 'Enter') key = '=';
+			if (key === 'Escape') key = 'CE';
+			if (key === 'Backspace') key = 'Delete';
+
+			if (button.innerHTML === key) {
+				button.classList.add('active');
+			}
+		});
+	}
+
+	function removeActiveButton(key) {
+		buttons.forEach(button => {
+			if (key === 'Enter') key = '=';
+			if (key === 'Escape') key = 'CE';
+			if (key === 'Backspace') key = 'Delete';
+
+			if (button.innerHTML === key) {
+				button.classList.remove('active');
+			}
+		});
+	}
+
+	const calculate = () => {
+		let text = getDisplayText();
+		const history = getHistoryText();
+
+		if (history === "0" && text === "0" && text === 0) return;
+
+		const historyRegex = /[\+\-\*\/\%]\w+$/;
+		const historyMatches = history.match(historyRegex);
+		const textRegex = /\d+[\+\-\*\/\%]\w+$/;
+		const textMatches = text.match(textRegex);
+
+		if (!textMatches && historyMatches) {
+			text += historyMatches;
+		} else {
+			console.log('No match found.');
+		}
+
+		const result = eval(text);
+
+		setHistoryText(text);
+		setDisplayText(result.toString());
+	}
+
+	buttons.forEach(button => {
+		button.innerHTML = button.innerHTML.trim();
+
+		button.addEventListener('click', () => {
+			const key = button.innerHTML;
+			switch (key) {
+				case 'C':
+				case 'Delete':
+					setDisplayText('0');
+					break;
+				case 'CE':
+				case 'Escape':
+					setDisplayText('0');
+					setHistoryText('');
+					break;
+				case '=':
+				case 'Enter':
+					calculate();
+					break;
+				default:
+					handleInput(key);
+					break;
+			}
+		});
+	});
+
+	document.addEventListener("keydown", event => {
+
+		const key = event.key;
+		setActiveButton(key);
+		switch (key) {
+			case 'Enter':
+			case '=':
+				calculate();
+				break;
+			case 'Backspace':
+				setDisplayText(getDisplayText().slice(0, -1));
+				if (getDisplayText().length === 0) {
+					setDisplayText('0');
+				}
+				break;
+			case 'Escape':
+			case 'CE':
+				setDisplayText('0');
+				setHistoryText('');
+				break;
+			case 'Delete':
+			case 'C':
+				setDisplayText('0');
+				break;
+			case '+':
+			case '-':
+			case '*':
+			case '/':
+			case '%':
+				handleInput(key);
+				break;
+			default:
+				if (!isNaN(key)) {
+					handleInput(key);
+				}
+				break;
+		}
+	});
+
+	document.addEventListener("keyup", event => {
+		removeActiveButton(event.key);
+	});
+
+	const setDisplayText = text => {
+		displayText.innerHTML = text;
+	}
+
+	const setHistoryText = text => {
+		historyText.innerHTML = text;
+	}
+
+	const getHistoryText = () => {
+		return historyText.innerHTML;
+	}
+
+	const addDisplayText = text => {
+		displayText.innerHTML += text;
+	}
+
+	const getDisplayText = () => {
+		return displayText.innerHTML;
+	}
 });
-
-operators.map(button => {
-    button.addEventListener('click', () => {
-        if (!repeatedEqual) {
-            display.innerText += button.innerText;
-        } else {
-            display.innerText = lastExpression.split(button.innerText)[0] + button.innerText;
-            repeatedEqual = false;
-        }
-    });
-});
-
-clearButton.addEventListener('click', () => {
-    display.innerText = '0';
-    lastInput.innerText = '0';
-    lastExpression = null;
-    repeatedEqual = false;
-});
-
-clearEntryButton.addEventListener('click', () => {
-    display.innerText = '0';
-});
-
-equalButton.addEventListener('click', () => {
-    if (!repeatedEqual) {
-        lastExpression = display.innerText;
-        lastInput.innerText = lastExpression;
-        display.innerText = eval(lastExpression);
-        repeatedEqual = true;
-    } else {
-        let operator = lastExpression.match(/[-+*/%]/g);
-        let operands = lastExpression.split(new RegExp(operator.join("|"), "g"));
-        if (operator && operands[1]) {
-            let newExpression = display.innerText + operator[operator.length - 1] + operands[1];
-            lastInput.innerText = newExpression;
-            display.innerText = eval(newExpression);
-            lastExpression = newExpression;
-        }
-    }
-});
-

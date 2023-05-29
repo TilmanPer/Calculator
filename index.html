@@ -1,37 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 
 <head>
-    <title>Calculator</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Flow+Circular&family=Montserrat:wght@300;800&family=Outfit:wght@200&family=Rowdies:wght@700&display=swap"
+    rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <title>Calculator</title>
 </head>
 
 <body>
-    <div id="calculator">
-        <div id="last-input">0</div>
-        <div id="display">0</div>
-        <div id="buttons">
-            <button class="btn clear">C</button>
-            <button class="btn clear-entry">CE</button>
-            <button class="btn op">%</button>
-            <button class="btn op">/</button>
-            <button class="btn num">7</button>
-            <button class="btn num">8</button>
-            <button class="btn num">9</button>
-            <button class="btn op">*</button>
-            <button class="btn num">4</button>
-            <button class="btn num">5</button>
-            <button class="btn num">6</button>
-            <button class="btn op">-</button>
-            <button class="btn num">1</button>
-            <button class="btn num">2</button>
-            <button class="btn num">3</button>
-            <button class="btn op">+</button>
-            <button class="btn zero num">0</button>
-            <button class="btn equal">=</button>
-        </div>
+  <div id="calculator-container">
+    <div id="result-container">
+      <p id="history-text"></p>
+      <p id="input-text">0</p>
     </div>
-    <script src="script.js"></script>
+    <div id="buttons-container">
+      <button class="button functional" id="percent">%</button>
+      <button class="button functional" id="divide">/</button>
+      <button class="button functional" id="clear">C</button>
+      <button class="button functional" id="clear-everything">CE</button>
+
+      <button class="button number" id="seven">7</button>
+      <button class="button number" id="eight">8</button>
+      <button class="button number" id="nine">9</button>
+      <button class="button functional" id="multiply">*</button>
+
+      <button class="button number" id="four">4</button>
+      <button class="button number" id="five">5</button>
+      <button class="button number" id="six">6</button>
+      <button class="button functional" id="subtract">-</button>
+
+      <button class="button number" id="one">1</button>
+      <button class="button number" id="two">2</button>
+      <button class="button number" id="three">3</button>
+      <button class="button functional" id="add">+</button>
+
+      <button class="button number" id="zero">0</button>
+
+      <button class="button functional" id="dot">.</button>
+      <button class="button functional" id="equals">=</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
 </body>
 
 </html>
