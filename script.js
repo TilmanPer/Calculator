@@ -13,8 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	const handleInput = input => {
-		inputRegex = '/^\-?\w+([\+\-\*\/\%]\w+)*$/'
-		if (!inputRegex.test(getDisplayText())) return;
 		if (getDisplayText() === '0') {
 			setDisplayText('');
 		}
@@ -47,27 +45,47 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	const calculate = () => {
-		let text = getDisplayText();
-		const history = getHistoryText();
+		const inputText = getDisplayText();
 
-		if (history === "0" && text === "0" && text === 0) return;
+		const inputRegex = /^\-?[\w]+(?:\.[\w]+)?([\+\-\*\/\%][\w]+(?:\.[\w]+)?)*$/;
+		const isValidInput = inputRegex.test(inputText) || inputRegex.test(inputText + '+');
 
-		const historyRegex = /[\+\-\*\/\%]\w+$/;
-		const historyMatches = history.match(historyRegex);
-		const textRegex = /\d+[\+\-\*\/\%]\w+$/;
-		const textMatches = text.match(textRegex);
-
-		if (!textMatches && historyMatches) {
-			text += historyMatches;
-		} else {
-			console.log('No match found.');
+		if (!isValidInput) {
+			console.log(`'${inputText}' does not match the pattern`);
+			displayText.innerHTML = markInvalidCharacters(inputText);
+			return;
 		}
 
-		const result = eval(text);
+		const result = eval(inputText);
 
-		setHistoryText(text);
+		setHistoryText(inputText);
 		setDisplayText(result.toString());
 	}
+
+	function markInvalidCharacters(text) {
+		const inputRegex = /^\-?[\w]+(?:\.[\w]+)?([\+\-\*\/\%][\w]+(?:\.[\w]+)?)*$/;
+
+		let markedText = '';
+		let foundError = false;
+
+		for (let i = 0; i < text.length; i++) {
+			const char = text[i];
+			const isInvalid = !inputRegex.test(char);
+
+			if (isInvalid && !foundError) {
+				markedText += `<span class="error">${char}</span>`;
+				foundError = true;
+			} else {
+				markedText += char;
+			}
+		}
+
+		return markedText;
+	}
+
+
+
+
 
 	buttons.forEach(button => {
 		button.innerHTML = button.innerHTML.trim();

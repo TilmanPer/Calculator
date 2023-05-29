@@ -90,12 +90,10 @@ body {
 }
 
 /*.button:nth-child(-n + 4) {
-  box-shadow: inset 0 -60px 10px -50px #0000006e;
   border-bottom: solid white 1px;
 }
 
 .button:nth-child(4n) {
-  box-shadow: inset 60px 0 10px -50px #0000006e;
   border-left: solid white 1px;
 }*/
 
@@ -112,4 +110,9 @@ body {
 
 #zero {
   border-bottom-left-radius: var(--border-radius);
+}
+
+.error {
+  color: #ff3e34;
+  font-size: 1.5rem;
 }
