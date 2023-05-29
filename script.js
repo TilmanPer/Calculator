@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	const handleInput = input => {
+		inputRegex = '/^\-?\w+([\+\-\*\/\%]\w+)*$/'
+		if (!inputRegex.test(getDisplayText())) return;
 		if (getDisplayText() === '0') {
 			setDisplayText('');
 		}
