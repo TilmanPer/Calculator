@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	/*Button click sound*/
 	const clickSound = new Audio("click.m4a");
 
+	let lastOperation = null;
+	let lastResult = null;
+
 	function playSound(audio, volume) {
 		audio = audio.cloneNode();
 		audio.volume = volume;
@@ -44,17 +47,22 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 
+
 	const calculate = () => {
 		let inputText = getDisplayText();
 
-		const inputRegex = /^(\-?\d+(\.\d+)?(([\+\-\*\/\%]-?\d+(\.\d+)?)*)*)$/;
-		const isValidInput = inputRegex.test(inputText);
-		/*
-				if (!isValidInput) {
-					console.log(`'${inputText}' does not match the pattern`);
-					displayText.innerHTML = markInvalidCharacters(inputText);
-					return;
-				}*/
+		// Extract last operation before potentially appending it to the input
+		const lastOperatorMatch = getHistoryText().match(/([\+\-\*\/\%][\-\+]?[\w]+)$/);
+		if (lastOperatorMatch !== null) {
+			lastOperation = lastOperatorMatch[0];
+		} else {
+			lastOperation = null;
+		}
+
+		// If the display text is equal to the last result, append the last operation to the input
+		if (inputText === lastResult) {
+			inputText += lastOperation;
+		}
 
 		try {
 			// Handling special cases: "--" becomes "+", "-+" becomes "-"
@@ -64,11 +72,15 @@ document.addEventListener("DOMContentLoaded", () => {
 			const result = new Function('return ' + inputText)();
 			setHistoryText(inputText);
 			setDisplayText(result.toString());
+
+			lastResult = getDisplayText();
 		} catch (e) {
 			console.log('Error in calculation: ' + e);
 			displayText.innerHTML = '<span class="error">' + inputText + '</span>';
 		}
 	}
+
+
 
 	function markInvalidCharacters(text) {
 		// Splitting the input into segments that always include a number and an operator
@@ -162,6 +174,8 @@ document.addEventListener("DOMContentLoaded", () => {
 				break;
 		}
 	});
+
+
 
 	document.addEventListener("keyup", event => {
 		removeActiveButton(event.key);
