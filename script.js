@@ -3,16 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
 	const historyText = document.getElementById('history-text');
 	const buttons = document.querySelectorAll('.button');
 
-	/*Button click sound*/
 	const clickSound = new Audio("click.m4a");
 
 	let lastOperation = null;
 	let lastResult = null;
 
 	function playSound(audio, volume) {
-		audio = audio.cloneNode();
-		audio.volume = volume;
-		audio.play();
+		const clonedAudio = audio.cloneNode();
+		clonedAudio.volume = volume;
+		clonedAudio.play();
 	}
 
 	const handleInput = input => {
@@ -21,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 		addDisplayText(input);
 		playSound(clickSound, 0.1);
-	}
+	};
 
 	function setActiveButton(key) {
 		buttons.forEach(button => {
@@ -37,9 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	function removeActiveButton(key) {
 		buttons.forEach(button => {
-			if (key === 'Enter') key = '=';
-			if (key === 'Escape') key = 'CE';
-			if (key === 'Backspace') key = 'Delete';
 
 			if (button.innerHTML === key) {
 				button.classList.remove('active');
@@ -47,27 +43,19 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 
-
 	const calculate = () => {
+		if (getDisplayText().match(/^[\-\+]?[\w]+$/) && !getHistoryText()) return;
 		let inputText = getDisplayText();
 
-		// Extract last operation before potentially appending it to the input
 		const lastOperatorMatch = getHistoryText().match(/([\+\-\*\/\%][\-\+]?[\w]+)$/);
-		if (lastOperatorMatch !== null) {
-			lastOperation = lastOperatorMatch[0];
-		} else {
-			lastOperation = null;
-		}
+		lastOperation = lastOperatorMatch !== null ? lastOperatorMatch[0] : null;
 
-		// If the display text is equal to the last result, append the last operation to the input
-		if (inputText === lastResult) {
+		if (inputText === lastResult || inputText === '0' && lastOperation !== null) {
 			inputText += lastOperation;
 		}
 
 		try {
-			// Handling special cases: "--" becomes "+", "-+" becomes "-"
-			inputText = inputText.replace(/\-\-/g, '+');
-			inputText = inputText.replace(/\-\+/g, '-');
+			inputText = inputText.replace(/\-\-/g, '+').replace(/\-\+/g, '-');
 
 			const result = new Function('return ' + inputText)();
 			setHistoryText(inputText);
@@ -78,70 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
 			console.log('Error in calculation: ' + e);
 			displayText.innerHTML = '<span class="error">' + inputText + '</span>';
 		}
-	}
+	};
 
-
-
-	function markInvalidCharacters(text) {
-		// Splitting the input into segments that always include a number and an operator
-		const segments = text.split(/(?=[\+\-\*\/\%])/);
-		const segmentRegex = /^[\-\+]?[\w]+(?:\.[\w]+)?$/;  // Validating individual number with optional preceding '-' or '+'
-		const operatorRegex = /^[\+\-\*\/\%]$/;  // Validating operators
-
-		let markedText = '';
-		let prevSegment = '';
-
-		segments.forEach((segment, i) => {
-			// If the segment is valid, add it to the marked text as is
-			if ((operatorRegex.test(segment) && segmentRegex.test(prevSegment)) ||
-				(segmentRegex.test(segment) && (operatorRegex.test(prevSegment) || prevSegment === ''))) {
-				markedText += segment;
-			}
-			// If the segment is invalid, mark the whole segment as an error
-			else {
-				markedText += `<span class="error">${segment}</span>`;
-			}
-			prevSegment = segment;
-		});
-
-		return markedText;
-	}
-
-
-
-
-	buttons.forEach(button => {
-		button.innerHTML = button.innerHTML.trim();
-
-		button.addEventListener('click', () => {
-			const key = button.innerHTML;
-			switch (key) {
-				case 'C':
-				case 'Delete':
-					setDisplayText('0');
-					break;
-				case 'CE':
-				case 'Escape':
-					setDisplayText('0');
-					setHistoryText('');
-					break;
-				case '=':
-				case 'Enter':
-					calculate();
-					break;
-				default:
-					handleInput(key);
-					break;
-			}
-		});
-	});
-
-	document.addEventListener("keydown", event => {
-
-		const key = event.key;
-		setActiveButton(key);
+	function inputListener(key) {
 		switch (key) {
-			case 'Enter':
 			case '=':
 				calculate();
 				break;
@@ -151,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
 					setDisplayText('0');
 				}
 				break;
-			case 'Escape':
 			case 'CE':
 				setDisplayText('0');
 				setHistoryText('');
@@ -173,9 +100,26 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 				break;
 		}
+	}
+
+	buttons.forEach(button => {
+		button.innerHTML = button.innerHTML.trim();
+
+		button.addEventListener('click', () => {
+			const key = button.innerHTML;
+			inputListener(key);
+		});
 	});
 
+	document.addEventListener("keydown", event => {
+		let key = event.key;
+		if (key === 'Enter') key = '=';
+		if (key === 'Escape') key = 'CE';
+		if (key === 'Backspace') key = 'Delete';
 
+		setActiveButton(key);
+		inputListener(key);
+	});
 
 	document.addEventListener("keyup", event => {
 		removeActiveButton(event.key);
@@ -183,21 +127,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	const setDisplayText = text => {
 		displayText.innerHTML = text.replace(/<span class="error">(.*?)<\/span>/g, '$1');
-	}
+	};
 
 	const setHistoryText = text => {
 		historyText.innerHTML = text;
-	}
+	};
 
 	const getHistoryText = () => {
 		return historyText.innerHTML;
-	}
+	};
 
 	const addDisplayText = text => {
 		displayText.innerHTML += text;
-	}
+	};
 
 	const getDisplayText = () => {
 		return displayText.innerHTML;
-	}
+	};
 });
