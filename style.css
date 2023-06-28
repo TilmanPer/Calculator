@@ -54,7 +54,7 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   align-items: flex-end;
-
+  overflow: hidden;
   box-shadow: inset -5px -10px 10px -10px black;
 }
 
