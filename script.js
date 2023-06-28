@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			case '*':
 			case '/':
 			case '%':
+			case '.':
 				handleInput(key);
 				break;
 			default:
